@@ -149,18 +149,14 @@ func (s *Server) SendEvents(e []Event) error {
 }
 
 // SendEvents posts one or more events to GameAnalytics using the server config
-func (s *Server) SendEventsWithXForwardedFor(e []Event, clientIp string) error {
-	if net.ParseIP(clientIp) == nil {
-		return fmt.Errorf("clientIp is not valid ipaddress", clientIp)
-	}
-
+func (s *Server) SendEventsWithXForwardedFor(e []Event, IPAddress net.IP) error {
 	payload, err := json.Marshal(e)
 	if err != nil {
 		return fmt.Errorf("Init marshal payload failed (%v)", err)
 	}
 
 	extraHeaders := make(map[string]string)
-	extraHeaders["X-Forwarded-For"] = clientIp
+	extraHeaders["X-Forwarded-For"] = IPAddress.String()
 	result, err := s.post(EventsRoute, payload, extraHeaders)
 	if err != nil {
 		return err
