@@ -21,19 +21,18 @@ type Event interface {
 	Validate() error
 }
 
-// DefaultAnnotations defines required information shared by all events
+// DefaultAnnotations defines required and optional information shared by all events
 type DefaultAnnotations struct {
-
 	// Use the unique device id if possible. For Android it’s the AID. Should
 	// always be the same across game launches.
-	UserID string `json:"user_id"`
+	UserID          string `json:"user_id"`
 
 	// examples: “iPhone6.1”, “GT-I9000”. If not found then “unknown”.
-	Device string `json:"device"`
+	Device          string `json:"device"`
 
 	// Reflects the version of events coming in to the collectors. Current version
 	// is 2.
-	APIVersion int `json:"v"`
+	APIVersion      int `json:"v"`
 
 	// Timestamp when the event was created (put in queue/database) on the client.
 	// This timestamp should be a corrected one using an offset of time from
@@ -49,26 +48,41 @@ type DefaultAnnotations struct {
 
 	// The SDK is submitting events to the servers. For custom solutions ALWAYS
 	// use “rest api v2”.
-	SDKVersion string `json:"sdk_version"`
+	SDKVersion      string `json:"sdk_version"`
 
 	// Operating system version. Like “android 4.4.4”, “ios 8.1”.
-	OSVersion string `json:"os_version"`
+	OSVersion       string `json:"os_version"`
 
 	// Manufacturer of the hardware the game is played on. Like “apple”,
 	// “samsung”, “lenovo”.
-	Manufacturer string `json:"manufacturer"`
+	Manufacturer    string `json:"manufacturer"`
 
 	// The platform the game is running. Platform is often a subset of os_version
 	// like “android”, “windows” etc.
-	Platform string `json:"platform"`
+	Platform        string `json:"platform"`
 
 	// Universally unique identifier generated on the SDK.
-	SessionID string `json:"session_id"`
+	SessionID       string `json:"session_id"`
 
 	// The SDK should count the number of sessions played since it was installed
 	// (storing locally and incrementing). The amount should include the session
 	// that is about to start.
-	SessionNumber uint `json:"session_num"`
+	SessionNumber   uint `json:"session_num"`
+
+	// Optional build id
+	Build           string `json:"build,omitempty"`
+
+	// Optional ios idfv
+	IOSIDFV         string `json:"ios_idfv,omitempty"`
+
+	// Optional ios idfa
+	IOSIDFA         string `json:"ios_idfa,omitempty"`
+
+	// Optional google aid
+	GoogleAID       string `json:"google_aid,omitempty"`
+
+	// Optional Limited ad tracking. Valid values ["true"]
+	LimitADTracking bool `json:"limit_ad_tracking,omitempty"`
 }
 
 // NewDefaultAnnotations sets sensible defaults for values on shared annotations.
@@ -83,17 +97,12 @@ func NewDefaultAnnotations() *DefaultAnnotations {
 	}
 }
 
-// ExtendedEvent used to add Build string to GA events
-type OptionalAnnotations struct {
-	Build string `json:"build,omitempty"`
-}
 
 // User event acts like a session start. It should always be the first event
 // in the first batch sent to the collectors and added each time a session
 // starts.
 type User struct {
 	*DefaultAnnotations
-	*OptionalAnnotations
 
 	// Category should always be 'user'
 	Category string `json:"category"`
@@ -104,7 +113,6 @@ func NewUserEvent(d *DefaultAnnotations) *User {
 	return &User{
 		Category:           "user",
 		DefaultAnnotations: d,
-		OptionalAnnotations: &OptionalAnnotations{},
 	}
 }
 
@@ -119,23 +127,22 @@ func (e User) Validate() error {
 // Business events are for real-money purchases.
 type Business struct {
 	*DefaultAnnotations
-	*OptionalAnnotations
 
 	// Category should always be 'business'
-	Category string `json:"category"`
+	Category          string `json:"category"`
 
 	// A 2 part event id; ItemType:ItemId.
-	EventID string `json:"event_id"`
+	EventID           string `json:"event_id"`
 
 	// The amount of the purchase in cents (integer).
-	Amount int `json:"amount"`
+	Amount            int `json:"amount"`
 
 	// Currency need to be a 3 letter upper case string to pass validation.
 	// In addition the currency need to be a valid currency for correct
 	// rate/conversion calculation at a later stage. Look at the following link
 	// for a list valid currency values.
 	// http://openexchangerates.org/currencies.json.
-	Currency string `json:"currency"`
+	Currency          string `json:"currency"`
 
 	// Similar to the session_num. Store this value locally and increment each
 	// time a business event is submitted during the lifetime (installation) of
@@ -145,7 +152,7 @@ type Business struct {
 	// OPTIONAL
 	// A string representing the cart (the location) from which the purchase was
 	// made. Could be menu_shop or end_of_level_shop.
-	CartType string `json:"cart_type"`
+	CartType          string `json:"cart_type"`
 }
 
 // Validate returns an error if any of the event fields is invalid
@@ -178,7 +185,6 @@ func NewBusinessEvent(d *DefaultAnnotations) *Business {
 	return &Business{
 		Category:           "business",
 		DefaultAnnotations: d,
-		OptionalAnnotations: &OptionalAnnotations{},
 	}
 }
 
@@ -188,13 +194,12 @@ func NewBusinessEvent(d *DefaultAnnotations) *Business {
 // session should be generated/sent.
 type SessionEnd struct {
 	*DefaultAnnotations
-	*OptionalAnnotations
 
 	// Category should always be 'session_end'
 	Category string `json:"category"`
 
 	// Session length in seconds.
-	Length int `json:"length"`
+	Length   int `json:"length"`
 }
 
 // NewSessionEndEvent created a new user event with the default annotations
@@ -202,7 +207,6 @@ func NewSessionEndEvent(d *DefaultAnnotations) *SessionEnd {
 	return &SessionEnd{
 		Category:           "session_end",
 		DefaultAnnotations: d,
-		OptionalAnnotations: &OptionalAnnotations{},
 	}
 }
 
@@ -222,7 +226,6 @@ func (e SessionEnd) Validate() error {
 // Resource event
 type Resource struct {
 	*DefaultAnnotations
-	*OptionalAnnotations
 	Category string `json:"category"`
 	EventID  string `json:"event_id"`
 	Amount   int `json:"amount"`
@@ -230,7 +233,10 @@ type Resource struct {
 
 // NewResource create new Resource event
 func NewResourceEvent(d *DefaultAnnotations) *Resource {
-	return &Resource{DefaultAnnotations: d, Category: "resource", OptionalAnnotations: &OptionalAnnotations{}}
+	return &Resource{
+		DefaultAnnotations: d,
+		Category: "resource",
+	}
 }
 
 // Validate returns an error for invalid length
