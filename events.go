@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"github.com/replaygaming/gameanalytics"
 )
 
 var (
@@ -83,11 +84,17 @@ func NewDefaultAnnotations() *DefaultAnnotations {
 	}
 }
 
+// ExtendedEvent used to add Build string to GA events
+type OptionalAnnotations struct {
+	Build string `json:"build,omitempty"`
+}
+
 // User event acts like a session start. It should always be the first event
 // in the first batch sent to the collectors and added each time a session
 // starts.
 type User struct {
 	*DefaultAnnotations
+	*OptionalAnnotations
 
 	// Category should always be 'user'
 	Category string `json:"category"`
@@ -98,6 +105,7 @@ func NewUserEvent(d *DefaultAnnotations) *User {
 	return &User{
 		Category:           "user",
 		DefaultAnnotations: d,
+		OptionalAnnotations: &OptionalAnnotations{},
 	}
 }
 
@@ -112,6 +120,7 @@ func (e User) Validate() error {
 // Business events are for real-money purchases.
 type Business struct {
 	*DefaultAnnotations
+	*OptionalAnnotations
 
 	// Category should always be 'business'
 	Category string `json:"category"`
@@ -170,6 +179,7 @@ func NewBusinessEvent(d *DefaultAnnotations) *Business {
 	return &Business{
 		Category:           "business",
 		DefaultAnnotations: d,
+		OptionalAnnotations: &OptionalAnnotations{},
 	}
 }
 
@@ -179,6 +189,7 @@ func NewBusinessEvent(d *DefaultAnnotations) *Business {
 // session should be generated/sent.
 type SessionEnd struct {
 	*DefaultAnnotations
+	*OptionalAnnotations
 
 	// Category should always be 'session_end'
 	Category string `json:"category"`
@@ -192,6 +203,7 @@ func NewSessionEndEvent(d *DefaultAnnotations) *SessionEnd {
 	return &SessionEnd{
 		Category:           "session_end",
 		DefaultAnnotations: d,
+		OptionalAnnotations: &OptionalAnnotations{},
 	}
 }
 
@@ -203,6 +215,30 @@ func (e SessionEnd) Validate() error {
 	}
 	if e.Length < 0 {
 		return fmt.Errorf("Length must be equal or greater than 0 (%d)", e.Length)
+	}
+	return nil
+}
+
+
+// Resource event
+type Resource struct {
+	*ga.DefaultAnnotations
+	*OptionalAnnotations
+	Category string `json:"category"`
+	EventID  string `json:"event_id"`
+	Amount   int `json:"amount"`
+}
+
+// NewResource create new Resource event
+func NewResource(d *ga.DefaultAnnotations) *Resource {
+	return &Resource{DefaultAnnotations: d, Category: "resource", OptionalAnnotations: &OptionalAnnotations{}}
+}
+
+// Validate returns an error for invalid length
+func (e Resource) Validate() error {
+	if e.Category != "resource" {
+		return fmt.Errorf("Resource category MUST be 'resource', was %s",
+			e.Category)
 	}
 	return nil
 }
