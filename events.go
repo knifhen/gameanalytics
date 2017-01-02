@@ -230,7 +230,7 @@ type Resource struct {
 }
 
 // NewResource create new Resource event
-func NewResource(d *ga.DefaultAnnotations) *Resource {
+func NewResourceEvent(d *ga.DefaultAnnotations) *Resource {
 	return &Resource{DefaultAnnotations: d, Category: "resource", OptionalAnnotations: &OptionalAnnotations{}}
 }
 
