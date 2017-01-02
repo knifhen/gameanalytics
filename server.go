@@ -174,12 +174,12 @@ func (s *Server) post(route string, payload []byte, extraHeaders map[string]stri
 	gz.Close()
 
 	url := fmt.Sprintf("%s/%s/%s", s.URL, s.GameKey, route)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(gzPayload))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(gzPayload.Bytes()))
 	if err != nil {
 		return nil, fmt.Errorf("Preparing request failed (%v)", err)
 	}
 
-	auth := computeHmac256(gzPayload, s.SecretKey)
+	auth := computeHmac256(gzPayload.Bytes(), s.SecretKey)
 	req.Header.Set("Authorization", auth)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
