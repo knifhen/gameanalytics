@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"time"
 	"compress/gzip"
+	"net"
 )
 
 const (
@@ -149,6 +150,10 @@ func (s *Server) SendEvents(e []Event) error {
 
 // SendEvents posts one or more events to GameAnalytics using the server config
 func (s *Server) SendEventsWithXForwardedFor(e []Event, clientIp string) error {
+	if net.ParseIP(clientIp) == nil {
+		return fmt.Errorf("clientIp is not valid ipaddress", clientIp)
+	}
+
 	payload, err := json.Marshal(e)
 	if err != nil {
 		return fmt.Errorf("Init marshal payload failed (%v)", err)
@@ -168,13 +173,13 @@ func (s *Server) SendEventsWithXForwardedFor(e []Event, clientIp string) error {
 
 // Post sends a payload using the server config
 func (s *Server) post(route string, payload []byte, extraHeaders map[string]string) ([]byte, error) {
-	gzPayload := bytes.Buffer{}
-	gz := gzip.NewWriter(&gzPayload)
+	gzPayload := &bytes.Buffer{}
+	gz := gzip.NewWriter(gzPayload)
 	gz.Write(payload)
 	gz.Close()
 
 	url := fmt.Sprintf("%s/%s/%s", s.URL, s.GameKey, route)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(gzPayload.Bytes()))
+	req, err := http.NewRequest("POST", url, gzPayload)
 	if err != nil {
 		return nil, fmt.Errorf("Preparing request failed (%v)", err)
 	}
