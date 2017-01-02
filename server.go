@@ -105,7 +105,7 @@ func (s *Server) Start() error {
 		return fmt.Errorf("Init marshal payload failed (%v)", err)
 	}
 
-	body, err := s.post(InitRoute, payload)
+	body, err := s.post(InitRoute, payload, make(map[string]string))
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,26 @@ func (s *Server) SendEvents(e []Event) error {
 		return fmt.Errorf("Init marshal payload failed (%v)", err)
 	}
 
-	result, err := s.post(EventsRoute, payload)
+	result, err := s.post(EventsRoute, payload, make(map[string]string))
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[INFO] Event sent (%s), response: %s\n", payload, result)
+
+	return nil
+}
+
+// SendEvents posts one or more events to GameAnalytics using the server config
+func (s *Server) SendEventsWithXForwardedFor(e []Event, clientIp string) error {
+	payload, err := json.Marshal(e)
+	if err != nil {
+		return fmt.Errorf("Init marshal payload failed (%v)", err)
+	}
+
+	extraHeaders := make(map[string]string)
+	extraHeaders["X-Forwarded-For"] = clientIp
+	result, err := s.post(EventsRoute, payload, extraHeaders)
 	if err != nil {
 		return err
 	}
@@ -147,7 +166,7 @@ func (s *Server) SendEvents(e []Event) error {
 }
 
 // Post sends a payload using the server config
-func (s *Server) post(route string, payload []byte) ([]byte, error) {
+func (s *Server) post(route string, payload []byte, extraHeaders map[string]string) ([]byte, error) {
 	url := fmt.Sprintf("%s/%s/%s", s.URL, s.GameKey, route)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
@@ -159,6 +178,10 @@ func (s *Server) post(route string, payload []byte) ([]byte, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "application/json") //TODO add gzip compression
+
+	for headerKey, headerValue := range extraHeaders {
+		req.Header.Set(headerKey, headerValue)
+	}
 
 	client := &http.Client{}
 	res, err := client.Do(req)
