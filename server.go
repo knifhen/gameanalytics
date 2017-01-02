@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"runtime"
 	"time"
+	"compress/gzip"
 )
 
 const (
@@ -167,17 +168,22 @@ func (s *Server) SendEventsWithXForwardedFor(e []Event, clientIp string) error {
 
 // Post sends a payload using the server config
 func (s *Server) post(route string, payload []byte, extraHeaders map[string]string) ([]byte, error) {
+	gzPayload := bytes.Buffer{}
+	gz := gzip.NewWriter(&gzPayload)
+	gz.Write(payload)
+	gz.Close()
+
 	url := fmt.Sprintf("%s/%s/%s", s.URL, s.GameKey, route)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(gzPayload))
 	if err != nil {
 		return nil, fmt.Errorf("Preparing request failed (%v)", err)
 	}
 
-	auth := computeHmac256(payload, s.SecretKey)
+	auth := computeHmac256(gzPayload, s.SecretKey)
 	req.Header.Set("Authorization", auth)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Encoding", "application/json") //TODO add gzip compression
+	req.Header.Set("Content-Encoding", "gzip")
 
 	for headerKey, headerValue := range extraHeaders {
 		req.Header.Set(headerKey, headerValue)
