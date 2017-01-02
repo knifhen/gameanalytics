@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"github.com/replaygaming/gameanalytics"
 )
 
 var (
@@ -17,7 +16,7 @@ func init() {
 	designID = compileRegex("^[A-Za-z0-9\\s\\-_\\.\\(\\)\\!\\?]{1,64}(:[A-Za-z0-9\\s\\-_\\.\\(\\)\\!\\?]{1,64}){0,4}$")
 }
 
-// Event interface TODO
+// Event interface
 type Event interface {
 	Validate() error
 }
@@ -222,7 +221,7 @@ func (e SessionEnd) Validate() error {
 
 // Resource event
 type Resource struct {
-	*ga.DefaultAnnotations
+	*DefaultAnnotations
 	*OptionalAnnotations
 	Category string `json:"category"`
 	EventID  string `json:"event_id"`
@@ -230,7 +229,7 @@ type Resource struct {
 }
 
 // NewResource create new Resource event
-func NewResourceEvent(d *ga.DefaultAnnotations) *Resource {
+func NewResourceEvent(d *DefaultAnnotations) *Resource {
 	return &Resource{DefaultAnnotations: d, Category: "resource", OptionalAnnotations: &OptionalAnnotations{}}
 }
 
