@@ -86,27 +86,27 @@ type DefaultAnnotations struct {
 }
 
 func (d *DefaultAnnotations) Validate() error {
-	if d.UserID == "" || d.UserID == nil {
+	if d.UserID == "" {
 		return fmt.Errorf("UserId MUST have a value, was %s", d.UserID)
 	}
 
-	if d.Device == "" || d.Device == nil {
+	if d.Device == "" {
 		return fmt.Errorf("Device MUST have a value, was %s", d.Device)
 	}
 
-	if d.OSVersion == "" || d.OSVersion == nil {
+	if d.OSVersion == "" {
 		return fmt.Errorf("OSVersion MUST have a value, was %s", d.OSVersion)
 	}
 
-	if d.Manufacturer == "" || d.Manufacturer == nil {
+	if d.Manufacturer == "" {
 		return fmt.Errorf("Manufacturer MUST have a value, was %s", d.Manufacturer)
 	}
 
-	if d.Platform == "" || d.Platform == nil {
+	if d.Platform == "" {
 		return fmt.Errorf("Platform MUST have a value, was %s", d.Platform)
 	}
 
-	if d.SessionID == "" || d.SessionID == nil {
+	if d.SessionID == "" {
 		return fmt.Errorf("SessionID MUST have a value, was %s", d.SessionID)
 	}
 
