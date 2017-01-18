@@ -85,6 +85,34 @@ type DefaultAnnotations struct {
 	LimitADTracking bool `json:"limit_ad_tracking,omitempty"`
 }
 
+func (d *DefaultAnnotations) Validate() error {
+	if d.UserID == "" || d.UserID == nil {
+		return fmt.Errorf("UserId MUST have a value, was %s", d.UserID)
+	}
+
+	if d.Device == "" || d.Device == nil {
+		return fmt.Errorf("Device MUST have a value, was %s", d.Device)
+	}
+
+	if d.OSVersion == "" || d.OSVersion == nil {
+		return fmt.Errorf("OSVersion MUST have a value, was %s", d.OSVersion)
+	}
+
+	if d.Manufacturer == "" || d.Manufacturer == nil {
+		return fmt.Errorf("Manufacturer MUST have a value, was %s", d.Manufacturer)
+	}
+
+	if d.Platform == "" || d.Platform == nil {
+		return fmt.Errorf("Platform MUST have a value, was %s", d.Platform)
+	}
+
+	if d.SessionID == "" || d.SessionID == nil {
+		return fmt.Errorf("SessionID MUST have a value, was %s", d.SessionID)
+	}
+
+	return nil
+}
+
 // NewDefaultAnnotations sets sensible defaults for values on shared annotations.
 func NewDefaultAnnotations() *DefaultAnnotations {
 	return &DefaultAnnotations{
@@ -245,7 +273,8 @@ func (e Resource) Validate() error {
 		return fmt.Errorf("Resource category MUST be 'resource', was %s",
 			e.Category)
 	}
-	return nil
+
+	return e.DefaultAnnotations.Validate()
 }
 
 /*
