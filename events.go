@@ -149,7 +149,7 @@ func (e User) Validate() error {
 	if e.Category != "user" {
 		return fmt.Errorf("User category MUST be 'user', was %s", e.Category)
 	}
-	return nil
+	return e.DefaultAnnotations.Validate()
 }
 
 // Business events are for real-money purchases.
@@ -205,7 +205,7 @@ func (e Business) Validate() error {
 	if !found {
 		return errors.New("Currency is invalid. Check Currencies for a valid list")
 	}
-	return nil
+	return e.DefaultAnnotations.Validate()
 }
 
 // NewBusinessEvent created a new user event with the default annotations
@@ -247,7 +247,7 @@ func (e SessionEnd) Validate() error {
 	if e.Length < 0 {
 		return fmt.Errorf("Length must be equal or greater than 0 (%d)", e.Length)
 	}
-	return nil
+	return e.DefaultAnnotations.Validate()
 }
 
 
