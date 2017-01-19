@@ -51,27 +51,30 @@ type APIStatus struct {
 // Server wraps the API endpoint and allows events to be sent
 type Server struct {
 	// GameKey provided by GameAnalytics for the account
-	GameKey string `json:"-"`
+	GameKey         string `json:"-"`
 
 	// SecretKey provided by GameAnalytics for the account
-	SecretKey string `json:"-"`
+	SecretKey       string `json:"-"`
 
 	// URL endpoint for GameAnalytics API
-	URL string `json:"-"`
+	URL             string `json:"-"`
 
 	// Platform represents the platform of the SDK
-	Platform string `json:"platform"`
+	Platform        string `json:"platform"`
 
 	// OSVersion represents the Operational System Version of the SDK
-	OSVersion string `json:"os_version"`
+	OSVersion       string `json:"os_version"`
 
 	// SDKVersion is the version of the SDK
-	SDKVersion string `json:"sdk_version"`
+	SDKVersion      string `json:"sdk_version"`
 
 	// Offset from GameAnalytics API and this server
 	TimestampOffset int `json:"-"`
 
 	APIStatus
+
+	// Enable logging from Server
+	EnableLogging   bool
 }
 
 // NewServer returns a server with default values for the GameAnalytics
@@ -84,6 +87,7 @@ func NewServer(gameKey, secretKey string) *Server {
 		Platform:   "go",
 		GameKey:    gameKey,
 		SecretKey:  secretKey,
+		EnableLogging: false,
 	}
 }
 
@@ -143,7 +147,9 @@ func (s *Server) SendEvents(e []Event) error {
 		return err
 	}
 
-	log.Printf("[INFO] Event sent (%s), response: %s\n", payload, result)
+	if s.EnableLogging {
+		log.Printf("[INFO] Event sent (%s), response: %s\n", payload, result)
+	}
 
 	return nil
 }
@@ -162,7 +168,9 @@ func (s *Server) SendEventsWithXForwardedFor(e []Event, IPAddress net.IP) error 
 		return err
 	}
 
-	log.Printf("[INFO] Event sent (%s), response: %s\n", payload, result)
+	if s.EnableLogging {
+		log.Printf("[INFO] Event sent (%s), response: %s\n", payload, result)
+	}
 
 	return nil
 }
